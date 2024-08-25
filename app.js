@@ -1,8 +1,11 @@
+// Import necessary modules
 const { ChatOpenAI } = require("@langchain/openai");
 const { PromptTemplate } = require("@langchain/core/prompts");
 const { StructuredOutputParser } = require("langchain/output_parsers");
 const inquirer = require("inquirer");
-const { StructuredChatOutputParser } = require("langchain/agents");
+const chalk = require("chalk");
+
+// Loads environment variables from a.env file
 require("dotenv").config();
 
 // Creates and stores a wrapper for the ChatOpenAI package along with basic configuration
@@ -53,12 +56,35 @@ const promptFunc = async () => {
       const res = await model.invoke(promptInput);
       const parsedOutput = await parser.parse(res.content);
 
-      // Print the JavaScript code snippet and explanation.
-      console.log(`\nCode:\n${parsedOutput.code}`);
-      console.log(`Explanation:\n${parsedOutput.explanation}`);
+      // Format the explanation with line breaks.
+      const formattedExplanation = parsedOutput.explanation
+        .replace(/\. /g, ".\n")
+        .replace(/\n{2,}/g, "\n");
+
+      // Print the formatted response to the console.
+      console.log(
+        chalk.blue.bold(
+          "\n================== FORMATTED RESPONSE ==================\n" 
+        )
+      );
+      console.log(
+        chalk.greenBright.bold("CODE:\n") +
+          chalk.bgBlack.white(`\t${parsedOutput.code}`)
+      );
+      console.log(
+        chalk.yellow.bold("\nEXPLANATION:\n") +
+          chalk.bgBlack.white(`\t${formattedExplanation}`)
+      );
+      console.log(
+        chalk.blue.bold(
+          "\n========================================================\n"
+        )
+      );
     } catch (err) {
       console.log(
-        "\nSorry, I can only help with JavaScript questions. Please ask something related to JavaScript.\n"
+        chalk.red.bold(
+          "\n*** Sorry, I can only help with JavaScript questions. Please ask something related to JavaScript. ***\n"
+        )
       );
     }
   }
