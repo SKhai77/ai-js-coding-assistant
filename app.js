@@ -1,11 +1,9 @@
-// Import necessary modules
+// Import necessary modules and load environment variables
 const { ChatOpenAI } = require("@langchain/openai");
 const { PromptTemplate } = require("@langchain/core/prompts");
 const { StructuredOutputParser } = require("langchain/output_parsers");
 const inquirer = require("inquirer");
 const chalk = require("chalk");
-
-// Loads environment variables from a.env file
 require("dotenv").config();
 
 // Creates and stores a wrapper for the ChatOpenAI package along with basic configuration
@@ -27,32 +25,33 @@ const promptFunc = async () => {
     ]);
 
     if (userInput.toLowerCase() === "exit") {
-      console.log("\nExiting the application...\n");
+      console.log(chalk.yellow("\nExiting the application...\n"));
       break;
     }
 
     try {
-      // Define the structured output parser for JavaScript-related coding questions.
+      // Initialize the output parser with a predefined schema.
       const parser = StructuredOutputParser.fromNamesAndDescriptions({
-        code: "JavaScript code that answers the user's question with example code snippet",
-        explanation: "Detailed explanation of the example code provided",
+        code: "Javascript code that answers the user's question with example code snippet",
+        explanation:
+          "Detailed explanation of the example code provided with the result",
       });
 
-      // Get the format instructions for the structured output.
+      // Get formatting instructions from the parser.
       const formatInstructions = parser.getFormatInstructions();
 
-      // Create the prompt template.
+      // Create a prompt template.
       const prompt = new PromptTemplate({
         template:
-          "You are a JavaScript expert and will answer the user's only JavaScript-related coding questions as thoroughly as possible\n{format_instructions}\n{question}",
+          "You are a JavaScript expert and will answer the user’s only JavaScript-related coding questions as thoroughly as possible with the example code's results always. Here are some JavaScript codes for you to recognize and provide the right answers, JSON, scope, array, function, object, variable, loop, condition, string, number, boolean, event, callback, promise, async, await, class, prototype, method, property, closure, operator, API, DOM, node.\n{format_instructions}\n{question}",
         inputVariables: ["question"],
         partialVariables: { format_instructions: formatInstructions },
       });
 
-      // Format the user input into the prompt format.
+      // Format the user's input.
       const promptInput = await prompt.format({ question: userInput });
 
-      // Send the prompt to OpenAI and get the response.
+      // Invoke the model and parse the output.
       const res = await model.invoke(promptInput);
       const parsedOutput = await parser.parse(res.content);
 
@@ -61,10 +60,10 @@ const promptFunc = async () => {
         .replace(/\. /g, ".\n")
         .replace(/\n{2,}/g, "\n");
 
-      // Print the formatted response to the console.
+      // Output the result with formatting.
       console.log(
         chalk.blue.bold(
-          "\n================== FORMATTED RESPONSE ==================\n" 
+          "\n================== FORMATTED RESPONSE ==================\n"
         )
       );
       console.log(
